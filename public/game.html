@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Sudoku - Game</title>
+  <title>Sudoku - Medium</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
   <style>
     body {
@@ -147,41 +147,11 @@
       opacity: 1;
       transform: translateY(0);
     }
-    .check-popup {
-      position: fixed;
-      top: 24px;
-      right: 24px;
-      background: #232837;
-      color: #fff;
-      padding: 18px 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-      font-size: 1.2rem;
-      font-family: inherit;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.5s;
-      z-index: 2000;
-    }
-    .check-popup.show {
-      opacity: 1;
-      pointer-events: auto;
-    }
-    /* Confetti styles */
-    .confetti-piece {
-      position: fixed;
-      width: 12px;
-      height: 12px;
-      border-radius: 3px;
-      opacity: 0.8;
-      z-index: 9999;
-      pointer-events: none;
-    }
   </style>
 </head>
 <body>
 <div class="container">
-  <h1>Sudoku - <span id="diff"></span></h1>
+  <h1>Sudoku - Medium</h1>
   <div class="button-row">
     <button class="btn blue" onclick="newGame()"><span>New Game</span></button>
     <button class="btn yellow" onclick="getHint()"><span>&#128161;</span> Hint</button>
@@ -202,90 +172,85 @@
     <button onclick="clearCell()">Clear</button>
   </div>
   <div id="mistake-popup" class="mistake-popup">Mistakes: 0</div>
-  <div id="check-popup" class="check-popup"></div>
 </div>
 <script>
-// --- Sudoku Puzzle and Solution ---
-const puzzles = {
-  easy: [
-    [0,0,1,0,5,6,0,0,0],
-    [0,8,1,0,5,0,0,5,4],
-    [5,0,6,9,0,1,3,0,7],
-    [7,0,2,0,9,0,0,8,0],
-    [0,0,0,6,0,7,0,0,2],
-    [2,5,0,0,9,7,0,0,0],
-    [0,0,3,0,0,9,0,5,0],
-    [7,5,2,0,1,0,6,0,3],
-    [4,0,0,6,0,0,0,0,1]
-  ],
-  medium: [
-    [0,0,1,0,5,6,0,0,0],
-    [0,8,1,0,5,0,0,5,4],
-    [5,0,6,9,0,1,3,0,7],
-    [7,0,2,0,9,0,0,8,0],
-    [0,0,0,6,0,7,0,0,2],
-    [2,5,0,0,9,7,0,0,0],
-    [0,0,3,0,0,9,0,5,0],
-    [7,5,2,0,1,0,6,0,3],
-    [4,0,0,6,0,0,0,0,1]
-  ],
-  hard: [
-    [0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,3,0,8,5],
-    [0,0,1,0,2,0,0,0,0],
-    [0,0,0,5,0,7,0,0,0],
-    [0,0,4,0,0,0,1,0,0],
-    [0,9,0,0,0,0,0,0,0],
-    [5,0,0,0,0,0,0,7,3],
-    [0,0,2,0,1,0,0,0,0],
-    [0,0,0,0,4,0,0,0,9]
-  ]
-};
+// ---- SUDOKU GENERATOR ----
 
-// Pre-solved solutions for hints (for demo, use a real solver in production)
-const solutions = {
-  easy: [
-    [3,4,1,7,5,6,2,8,9],
-    [9,8,1,3,5,2,7,5,4], // NOTE: This row is not a valid Sudoku, but for demo only
-    [5,2,6,9,8,1,3,4,7],
-    [7,1,2,4,9,3,5,8,6],
-    [8,3,5,6,1,7,4,9,2],
-    [2,5,9,8,9,7,1,3,5],
-    [6,7,3,2,4,9,8,5,1],
-    [7,5,2,1,1,8,6,2,3],
-    [4,9,8,6,3,5,7,2,1]
-  ],
-  medium: [
-    [3,4,1,7,5,6,2,8,9],
-    [9,8,1,3,5,2,7,5,4], // NOTE: This row is not a valid Sudoku, but for demo only
-    [5,2,6,9,8,1,3,4,7],
-    [7,1,2,4,9,3,5,8,6],
-    [8,3,5,6,1,7,4,9,2],
-    [2,5,9,8,9,7,1,3,5],
-    [6,7,3,2,4,9,8,5,1],
-    [7,5,2,1,1,8,6,2,3],
-    [4,9,8,6,3,5,7,2,1]
-  ],
-  hard: [
-    [8,2,7,1,5,4,3,9,6],
-    [9,6,5,3,2,7,1,4,8],
-    [3,4,1,6,8,9,7,5,2],
-    [5,9,3,4,6,8,2,7,1],
-    [4,7,2,5,1,3,6,8,9],
-    [6,1,8,9,7,2,4,3,5],
-    [7,8,6,2,3,5,9,1,4],
-    [1,5,4,7,9,6,8,2,3],
-    [2,3,9,8,4,1,5,6,7]
-  ]
-};
+// Helper to shuffle an array
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
 
-let board, originalBoard, selectedCell = null, mistakes = 0;
-const diff = localStorage.getItem('sudokuDifficulty') || 'medium';
-document.getElementById('diff').innerText = diff.charAt(0).toUpperCase() + diff.slice(1);
+// Check if num can be placed at board[row][col]
+function isSafe(board, row, col, num) {
+  for (let x = 0; x < 9; x++)
+    if (board[row][x] === num || board[x][col] === num)
+      return false;
+  const startRow = row - row % 3, startCol = col - col % 3;
+  for (let i = 0; i < 3; i++)
+    for (let j = 0; j < 3; j++)
+      if (board[startRow + i][startCol + j] === num)
+        return false;
+  return true;
+}
+
+// Backtracking Sudoku solver (fills the board)
+function fillBoard(board) {
+  for (let row = 0; row < 9; row++) {
+    for (let col = 0; col < 9; col++) {
+      if (board[row][col] === 0) {
+        let nums = shuffle([1,2,3,4,5,6,7,8,9]);
+        for (let num of nums) {
+          if (isSafe(board, row, col, num)) {
+            board[row][col] = num;
+            if (fillBoard(board)) return true;
+            board[row][col] = 0;
+          }
+        }
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+// Remove cells to create a puzzle of given difficulty
+function removeCells(board, clues = 32) {
+  let attempts = 81 - clues;
+  let puzzle = board.map(row => row.slice());
+  while (attempts > 0) {
+    let row = Math.floor(Math.random() * 9);
+    let col = Math.floor(Math.random() * 9);
+    if (puzzle[row][col] !== 0) {
+      puzzle[row][col] = 0;
+      attempts--;
+    }
+  }
+  return puzzle;
+}
+
+// Generate a new Sudoku puzzle and its solution
+function generateSudoku(clues = 32) {
+  let solution = Array.from({length:9},()=>Array(9).fill(0));
+  fillBoard(solution);
+  let puzzle = removeCells(solution, clues);
+  return { puzzle, solution };
+}
+
+// ---- GAME LOGIC ----
+
+let board, originalBoard, solution, selectedCell = null, mistakes = 0;
 
 function newGame() {
-  board = JSON.parse(JSON.stringify(puzzles[diff]));
-  originalBoard = JSON.parse(JSON.stringify(puzzles[diff]));
+  // You can adjust clues for difficulty: easy=40, medium=32, hard=24
+  let { puzzle, solution: sol } = generateSudoku(32);
+  board = puzzle.map(row => row.slice());
+  originalBoard = puzzle.map(row => row.slice());
+  solution = sol;
   mistakes = 0;
   selectedCell = null;
   renderBoard();
@@ -342,6 +307,7 @@ function clearCell() {
 }
 
 function isValidMove(board, row, col, num) {
+  // Don't check against itself
   for (let i = 0; i < 9; i++) {
     if (i !== col && board[row][i] === num) return false;
     if (i !== row && board[i][col] === num) return false;
@@ -361,28 +327,19 @@ function showMistakePopup() {
   setTimeout(() => popup.classList.remove('show'), 1500);
 }
 
-function showCheckPopup(msg, isSuccess) {
-  const popup = document.getElementById('check-popup');
-  popup.textContent = msg;
-  popup.style.background = isSuccess ? "#22c55e" : "#ff4d4f";
-  popup.classList.add('show');
-  setTimeout(() => popup.classList.remove('show'), 2000);
-}
-
 function checkBoard() {
   let errors = 0;
   for (let r = 0; r < 9; r++) {
     for (let c = 0; c < 9; c++) {
       if (originalBoard[r][c] === 0 && board[r][c] !== 0) {
-        if (board[r][c] !== solutions[diff][r][c]) errors++;
+        if (board[r][c] !== solution[r][c]) errors++;
       }
     }
   }
   if (errors === 0 && isBoardComplete()) {
-    showCheckPopup("Congratulations! 🎉 No errors.", true);
-    launchConfetti();
+    alert("Congratulations! No errors.");
   } else {
-    showCheckPopup(`Total errors: ${errors}`, false);
+    alert(`Total errors: ${errors}`);
   }
 }
 
@@ -403,63 +360,15 @@ function getHint() {
   if (empties.length === 0) return;
   // Pick a random empty cell
   const [r, c] = empties[Math.floor(Math.random() * empties.length)];
-  board[r][c] = solutions[diff][r][c];
+  board[r][c] = solution[r][c];
   renderBoard();
-}
-
-function isBoardValid(board) {
-  for (let r = 0; r < 9; r++) {
-    for (let c = 0; c < 9; c++) {
-      const num = board[r][c];
-      if (num !== 0) {
-        board[r][c] = 0;
-        if (!isValidMove(board, r, c, num)) {
-          board[r][c] = num;
-          return false;
-        }
-        board[r][c] = num;
-      }
-    }
-  }
-  return true;
 }
 
 function goHome() {
   window.location.href = 'difficulty.html';
 }
 
-// --- Confetti Animation ---
-function launchConfetti() {
-  for (let i = 0; i < 70; i++) {
-    createConfettiPiece();
-  }
-}
-function createConfettiPiece() {
-  const colors = ['#3a5afe', '#fbbf24', '#22c55e', '#ff4d4f', '#fff176'];
-  const confetti = document.createElement('div');
-  confetti.className = 'confetti-piece';
-  confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-  confetti.style.left = Math.random() * 100 + 'vw';
-  confetti.style.top = '-30px';
-  confetti.style.opacity = Math.random() * 0.7 + 0.3;
-  confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
-  document.body.appendChild(confetti);
-
-  const fall = Math.random() * 100 + 400;
-  const rotate = Math.random() * 360 + 360;
-  confetti.animate([
-    { transform: confetti.style.transform, top: '-30px' },
-    { transform: `rotate(${rotate}deg)`, top: fall + 'px' }
-  ], {
-    duration: Math.random() * 600 + 1200,
-    easing: 'ease-out'
-  });
-
-  setTimeout(() => confetti.remove(), 1800);
-}
-
 window.onload = newGame;
-if(!localStorage.getItem('sudokuUser')) window.location = 'index.html';
 </script>
 </body>
 </html>
