@@ -1,4 +1,4 @@
-name: CI - Run Jest Tests
+name: CI - Run Sudoku Tests
 
 on:
   push:
@@ -11,19 +11,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: ⬇️ Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
+      - name: 🧰 Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: npm install
 
-      - name: Install Jest
-        run: npm install --save-dev jest
-
-      - name: Run tests
+      - name: 🧪 Run Jest Tests
         run: npm test
