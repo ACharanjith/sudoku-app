@@ -1,5 +1,5 @@
 const express = require('express');
-const mongoose = require('mongoose');
+const mongoose = require('mongoose'); // Declare once here
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
@@ -10,7 +10,8 @@ app.use(bodyParser.json());
 app.use(express.static('public')); // Serve frontend
 
 // Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/sudoku', { useNewUrlParser: true, useUnifiedTopology: true });
+const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/sudoku';
+mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 // User schema
 const userSchema = new mongoose.Schema({
